@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wordle Game</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+            margin: 0;
+            color: #333;
+        }
+
+        .game-container {
+            text-align: center;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .title {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #6aaa64;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        /* Word Length Buttons */
+        .length-buttons {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .length-buttons button {
+            padding: 6px 10px;
+            font-size: 12px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4a90e2;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .length-buttons button:hover {
+            background-color: #357abd;
+            transform: scale(1.05);
+        }
+
+        .length-buttons button:active {
+            transform: scale(0.95);
+        }
+
+        /* Guess Grid */
+        .guess-grid {
+            display: grid;
+            grid-template-rows: repeat(6, 60px);
+            grid-gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .guess-row {
+            display: grid;
+            grid-template-columns: repeat(var(--word-length), 60px);
+            grid-gap: 8px;
+        }
+
+        .guess-cell {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #d3d6da;
+            font-size: 24px;
+            font-weight: bold;
+            background-color: #ffffff;
+            color: #333;
+            border-radius: 5px;
+            transition: all 0.2s ease;
+        }
+
+        .guess-cell.correct {
+            background-color: #6aaa64;
+            border-color: #6aaa64;
+            color: white;
+        }
+
+        .guess-cell.present {
+            background-color: #c9b458;
+            border-color: #c9b458;
+            color: white;
+        }
+
+        .guess-cell.absent {
+            background-color: #787c7e;
+            border-color: #787c7e;
+            color: white;
+        }
+
+        /* Input Section */
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        .input-section input {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #d3d6da;
+            border-radius: 5px;
+            width: 200px;
+            margin-right: 10px;
+            transition: border-color 0.2s ease;
+        }
+
+        .input-section input:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+
+        .input-section button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #6aaa64;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .input-section button:hover {
+            background-color: #5a9954;
+            transform: scale(1.05);
+        }
+
+        .input-section button:active {
+            transform: scale(0.95);
+        }
+
+        /* Message Section */
+        #message {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        /* Code Section */
+        .code-section {
+            margin-top: 20px;
+        }
+
+        .code-section input {
+            padding: 10px;
+            font-size: 16px;
+            border: 2px solid #d3d6da;
+            border-radius: 5px;
+            width: 200px;
+            margin-right: 10px;
+            transition: border-color 0.2s ease;
+        }
+
+        .code-section input:focus {
+            border-color: #4a90e2;
+            outline: none;
+        }
+
+        .code-section button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4a90e2;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        .code-section button:hover {
+            background-color: #357abd;
+            transform: scale(1.05);
+        }
+
+        .code-section button:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="title">Wordle</div>
+        <div class="subtitle">Guess the hidden word!</div>
+        <div class="length-buttons" id="length-buttons">
+            <!-- Buttons for word length selection will be dynamically added here -->
+        </div>
+        <div class="guess-grid" id="guess-grid">
+            <!-- Guess rows will be dynamically added here -->
+        </div>
+        <div class="input-section">
+            <input type="text" id="guess-input" maxlength="14" placeholder="Enter your guess">
+            <button onclick="submitGuess()">Submit</button>
+        </div>
+        <div id="message"></div>
+        <div class="code-section">
+            <button onclick="generateCustomWord()">Create Custom Wordle</button>
+            <input type="text" id="code-input" placeholder="Paste code here">
+            <button onclick="startWithCode()">Start with Code</button>
+        </div>
+    </div>
+
+    <script>
+        const MIN_WORD_LENGTH = 3;
+        const MAX_WORD_LENGTH = 8; // Default word length range
+        const MAX_CUSTOM_LENGTH = 14; // Custom Wordles can be up to 14 letters
+        const MAX_GUESSES = 6;
+
+        // A larger subset of valid English words for demonstration (3-8 letters)
+        const VALID_WORDS = {
+            3: [
+                "CAT", "DOG", "SUN", "CAR", "BAT", "BED", "BIG", "BOX", "CUP", "DAY",
+                "EAR", "EGG", "EYE", "FAN", "FAT", "FIT", "FUN", "GAP", "GAS", "GUM",
+                "HAT", "HOT", "ICE", "INK", "JAR", "JOB", "KEY", "KID", "LAB", "LAP",
+                "LEG", "LIP", "LOG", "MAN", "MAP", "MAT", "MUD", "NET", "NUT", "OAK",
+                "OIL", "OWL", "PAN", "PEN", "PIG", "PIN", "POT", "RAT", "RIB", "ROD",
+                "ROT", "RUG", "SEA", "SEE", "SEW", "SIT", "SKY", "SOY", "TEA", "TOE",
+                "TOY", "TUB", "TUG", "URN", "VAN", "VAT", "WAR", "WAX", "WEB", "WET",
+                "WIG", "WIN", "YAK", "YAM", "YAP", "YAW", "YEN", "YES", "YET", "ZAP",
+                "ZIP", "ZOO", "ACT", "ADD", "AGE", "AIR", "AND", "ANT", "ANY", "APE",
+                "ARM", "ART", "ASH", "ASK", "ATE", "BAD", "BAG", "BAN", "BAR", "BAT"
+            ],
+            4: [
+                "FISH", "BIRD", "TREE", "BOOK", "CAKE", "BALL", "BEAM", "BELL", "BEND", "BENT",
+                "BEST", "BIKE", "BIND", "BITE", "BLUE", "BOAT", "BOLD", "BONE", "BOOK", "BORN",
+                "BOSS", "BOTH", "BOWL", "BULK", "BURN", "BURY", "BUSY", "CAGE", "CAKE", "CALL",
+                "CALM", "CAME", "CAMP", "CARD", "CARE", "CASE", "CASH", "CAST", "CAVE", "CHIP",
+                "CHOP", "CITY", "CLAP", "CLAY", "CLIP", "CLUB", "COAL", "COAT", "CODE", "COLD",
+                "COMB", "COME", "COOK", "COOL", "COPE", "COPY", "CORD", "CORE", "CORK", "COST",
+                "COVE", "CRAB", "CRAG", "CRAM", "CROP", "CROW", "CURL", "CURT", "CUTE", "DAMP",
+                "DARE", "DARK", "DART", "DASH", "DATA", "DATE", "DAWN", "DAYS", "DEAD", "DEAF",
+                "DEAL", "DEAN", "DEAR", "DEBT", "DECK", "DEED", "DEEM", "DEEP", "DEER", "DEFY",
+                "DELI", "DENY", "DESK", "DIAL", "DICE", "DIET", "DINE", "DISH", "DIVE", "DOCK"
+            ],
+            5: [
+                "APPLE", "TIGER", "HONEY", "GRAPE", "LEMON", "ABBEY", "ABIDE", "ABLED", "ABODE", "ABORT",
+                "ABOUT", "ABOVE", "ABUSE", "ACORN", "ACUTE", "ADAPT", "ADMIT", "ADOBE", "ADOPT", "ADORE",
+                "ADORN", "ADULT", "AFFIX", "AFOOT", "AFTER", "AGAIN", "AGAPE", "AGATE", "AGENT", "AGILE",
+                "AGLOW", "AGONY", "AGREE", "AHEAD", "AISLE", "ALARM", "ALBUM", "ALERT", "ALIEN", "ALIKE",
+                "ALIVE", "ALLAY", "ALLEY", "ALLOT", "ALLOW", "ALLOY", "ALOFT", "ALONE", "ALONG", "ALOOF",
+                "ALOUD", "ALTAR", "ALTER", "AMASS", "AMAZE", "AMBER", "AMEND", "AMISS", "AMONG", "AMPLE",
+                "ANGEL", "ANGER", "ANGLE", "ANGRY", "ANIME", "ANKLE", "ANNEX", "ANNOY", "ANNUL", "ANODE",
+                "ANTIC", "ANVIL", "APART", "APHID", "APPLE", "APPLY", "APRON", "APTLY", "ARBOR", "ARDOR",
+                "ARENA", "ARGUE", "ARISE", "ARMOR", "AROMA", "AROSE", "ARRAY", "ARROW", "ARTSY", "ASCOT"
+            ],
+            6: [
+                "BANANA", "ORANGE", "TURTLE", "RABBIT", "MONKEY", "ABACUS", "ABASED", "ABATED", "ABBEYS", "ABBOTS",
+                "ABDUCT", "ABHORS", "ABIDED", "ABJECT", "ABJURE", "ABLAZE", "ABOARD", "ABODES", "ABORTS", "ABOUND",
+                "ABROAD", "ABRUPT", "ABSEIL", "ABSENT", "ABSORB", "ABSURD", "ABUSED", "ABUSER", "ABUSES", "ABYSSS",
+                "ACACIA", "ACCEDE", "ACCENT", "ACCEPT", "ACCESS", "ACCORD", "ACCOST", "ACCRUE", "ACCUSE", "ACETIC",
+                "ACHING", "ACIDIC", "ACIDLY", "ACORNS", "ACQUIT", "ACROSS", "ACTING", "ACTION", "ACTIVE", "ACTORS",
+                "ACTUAL", "ACUITY", "ACUMEN", "ACUTER", "ADAGIO", "ADAPTS", "ADDEND", "ADDERS", "ADDICT", "ADDING",
+                "ADDLED", "ADDLES", "ADDUCE", "ADEPTS", "ADHERE", "ADIEUS", "ADJOIN", "ADJURE", "ADJUST", "ADMIRE",
+                "ADMITS", "ADOBES", "ADOPTS", "ADORED", "ADORER", "ADORES", "ADORNS", "ADRIFT", "ADROIT", "ADSORB"
+            ],
+            7: [
+                "ELEPHANT", "GIRAFFE", "PLANETS", "JOURNEY", "LIBRARY", "ABALONE", "ABANDON", "ABASING", "ABATERS", "ABATING",
+                "ABATTOI", "ABDOMEN", "ABDUCED", "ABDUCES", "ABDUCTS", "ABETTED", "ABETTER", "ABEYANT", "ABIDERS", "ABIDING",
+                "ABIGAIL", "ABILITY", "ABIOSES", "ABIOSIS", "ABIOGEN", "ABJECTS", "ABJURED", "ABJURER", "ABJURES", "ABLATED",
+                "ABLATES", "ABLAUTS", "ABLAZED", "ABLAZES", "ABOLISH", "ABORTED", "ABORTER", "ABORTUS", "ABOUNDS", "ABRADED",
+                "ABRADER", "ABRADES", "ABREACT", "ABREAST", "ABRIDGE", "ABROSIA", "ABSCESS", "ABSCOND", "ABSEILS", "ABSENCE",
+                "ABSENTS", "ABSINTH", "ABSOLVE", "ABSORBS", "ABSTAIN", "ABUSERS", "ABUSING", "ABUSIVE", "ABUTTED", "ABUTTER",
+                "ABYSMAL", "ABYSSAL", "ABYSSES", "ACACIAS", "ACADEME", "ACADEMY", "ACANTHI", "ACAPNIA", "ACARIDS", "ACARINE"
+            ],
+            8: [
+                "UNICORNS", "RAINBOWS", "BUTTERFLY", "MOUNTAIN", "HOSPITAL", "ABALONES", "ABANDONS", "ABATTOIR", "ABDOMENS", "ABDUCTED",
+                "ABDUCTOR", "ABERRANT", "ABETTING", "ABEYANCE", "ABHORRED", "ABIDANCE", "ABIGAILS", "ABJECTLY", "ABLATIVES", "ABLUTION",
+                "ABNEGATE", "ABNORMAL", "ABOMASUM", "ABORIGIN", "ABORTING", "ABORTION", "ABRADERS", "ABRADING", "ABRASION", "ABRASIVE",
+                "ABREACTS", "ABRIDGED", "ABRIDGER", "ABRIDGES", "ABROGATE", "ABRUPTLY", "ABSCISSA", "ABSCONDS", "ABSEILED", "ABSENCES",
+                "ABSENTED", "ABSENTEE", "ABSENTLY", "ABSINTHE", "ABSOLUTE", "ABSOLVED", "ABSOLVER", "ABSOLVES", "ABSONANT", "ABSORBED",
+                "ABSORBER", "ABSTAINS", "ABSTERGE", "ABSTRACT", "ABSTRICT", "ABSTRUSE", "ABUNDANT", "ABUSABLE", "ABUTMENT", "ABUTTALS",
+                "ABUTTERS", "ABUTTING", "ACADEMIA", "ACADEMIC", "ACALEPHA", "ACALEPHE", "ACANTHAE", "ACANTHUS", "ACARIDAN", "ACARINES"
+            ]
+        };
+
+        let targetWord = "CRANE"; // Default target word
+        let wordLength = 5; // Default word length
+        let currentGuess = "";
+        let guesses = [];
+
+        const lengthButtons = document.getElementById("length-buttons");
+        const guessGrid = document.getElementById("guess-grid");
+        const guessInput = document.getElementById("guess-input");
+        const message = document.getElementById("message");
+        const codeInput = document.getElementById("code-input");
+
+        // Initialize word length buttons (3-8 letters)
+        function initLengthButtons() {
+            for (let i = MIN_WORD_LENGTH; i <= MAX_WORD_LENGTH; i++) {
+                const button = document.createElement("button");
+                button.textContent = `${i} Letters`;
+                button.addEventListener("click", () => setWordLength(i));
+                lengthButtons.appendChild(button);
+            }
+        }
+
+        // Set the word length and reset the game
+        function setWordLength(length) {
+            wordLength = length;
+            targetWord = getRandomValidWord(length);
+            guesses = [];
+            renderGuessGrid();
+            guessInput.maxLength = length;
+            guessInput.placeholder = `Enter your ${length}-letter guess`;
+            message.textContent = "";
+            guessInput.disabled = false;
+        }
+
+        // Get a random valid word of a given length
+        function getRandomValidWord(length) {
+            const words = VALID_WORDS[length];
+            if (words && words.length > 0) {
+                return words[Math.floor(Math.random() * words.length)];
+            }
+            return generateRandomWord(length); // Fallback to random letters if no valid words are found
+        }
+
+        // Generate a random word of a given length (fallback)
+        function generateRandomWord(length) {
+            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            let word = "";
+            for (let i = 0; i < length; i++) {
+                word += letters[Math.floor(Math.random() * letters.length)];
+            }
+            return word;
+        }
+
+        // Render the guess grid
+        function renderGuessGrid() {
+            guessGrid.innerHTML = "";
+            guessGrid.style.setProperty("--word-length", wordLength);
+            for (let i = 0; i < MAX_GUESSES; i++) {
+                const guessRow = document.createElement("div");
+                guessRow.className = "guess-row";
+                for (let j = 0; j < wordLength; j++) {
+                    const guessCell = document.createElement("div");
+                    guessCell.className = "guess-cell";
+                    if (guesses[i] && guesses[i][j]) {
+                        guessCell.textContent = guesses[i][j].letter;
+                        guessCell.classList.add(guesses[i][j].status);
+                    }
+                    guessRow.appendChild(guessCell);
+                }
+                guessGrid.appendChild(guessRow);
+            }
+        }
+
+        // Submit a guess
+        function submitGuess() {
+            const guess = guessInput.value.toUpperCase();
+            if (guess.length !== wordLength) {
+                message.textContent = `Guess must be ${wordLength} letters long.`;
+                return;
+            }
+
+            if (guesses.length >= MAX_GUESSES) {
+                message.textContent = "You've used all your guesses!";
+                return;
+            }
+
+            const feedback = getFeedback(guess, targetWord);
+            guesses.push(feedback);
+            renderGuessGrid();
+
+            if (guess === targetWord) {
+                message.textContent = "Congratulations! You've guessed the word!";
+                guessInput.disabled = true;
+                return;
+            }
+
+            if (guesses.length === MAX_GUESSES) {
+                message.textContent = `Game over! The word was ${targetWord}.`;
+                guessInput.disabled = true;
+                return;
+            }
+
+            guessInput.value = "";
+            message.textContent = "";
+        }
+
+        // Get feedback for a guess
+        function getFeedback(guess, target) {
+            const feedback = [];
+            const targetLetters = target.split("");
+
+            for (let i = 0; i < guess.length; i++) {
+                const letter = guess[i];
+                if (letter === target[i]) {
+                    feedback.push({ letter, status: "correct" });
+                    targetLetters[i] = null; // Mark as used
+                } else if (targetLetters.includes(letter)) {
+                    feedback.push({ letter, status: "present" });
+                    targetLetters[targetLetters.indexOf(letter)] = null; // Mark as used
+                } else {
+                    feedback.push({ letter, status: "absent" });
+                }
+            }
+
+            return feedback;
+        }
+
+        // Generate a custom Wordle word and code
+        function generateCustomWord() {
+            const customWord = prompt(`Enter a ${MIN_WORD_LENGTH}- to ${MAX_CUSTOM_LENGTH}-letter word for your custom Wordle:`);
+            if (customWord && customWord.length >= MIN_WORD_LENGTH && customWord.length <= MAX_CUSTOM_LENGTH) {
+                const code = btoa(`${customWord.length}:${customWord.toUpperCase()}`); // Encode word length and word
+                alert(`Your custom Wordle code is: ${code}`);
+            } else {
+                alert(`Please enter a valid ${MIN_WORD_LENGTH}- to ${MAX_CUSTOM_LENGTH}-letter word.`);
+            }
+        }
+
+        // Start the game with a code
+        function startWithCode() {
+            const code = codeInput.value.trim();
+            if (code) {
+                try {
+                    const decoded = atob(code); // Decode the base64 code
+                    const [length, word] = decoded.split(":");
+                    if (word && word.length === parseInt(length)) {
+                        wordLength = parseInt(length);
+                        targetWord = word.toUpperCase();
+                        guesses = [];
+                        renderGuessGrid();
+                        guessInput.maxLength = wordLength;
+                        guessInput.placeholder = `Enter your ${wordLength}-letter guess`;
+                        message.textContent = "Game started with custom word!";
+                        guessInput.disabled = false;
+                    } else {
+                        alert("Invalid code. Please check and try again.");
+                    }
+                } catch (e) {
+                    alert("Invalid code. Please check and try again.");
+                }
+            } else {
+                alert("Please enter a valid code.");
+            }
+        }
+
+        // Initialize the game
+        initLengthButtons();
+        setWordLength(5); // Default to 5-letter word
+    </script>
+</body>
+</html>
