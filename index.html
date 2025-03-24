@@ -71,32 +71,35 @@
             transform: scale(0.95);
         }
 
-        /* Guess Grid */
         .guess-grid {
-            display: grid;
-            grid-template-rows: repeat(6, 60px);
-            grid-gap: 8px;
-            margin-bottom: 20px;
-        }
+    display: grid;
+    grid-template-rows: repeat(6, 60px);
+    grid-gap: 8px;
+    margin-bottom: 20px;
+    width: 100%;
+}
 
-        .guess-row {
-            display: grid;
-            grid-template-columns: repeat(var(--word-length), 60px);
-            grid-gap: 8px;
-        }
+.guess-row {
+    display: grid;
+    grid-template-columns: repeat(var(--word-length), 1fr);
+    grid-gap: 8px;
+    height: 60px;
+}
 
-        .guess-cell {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid #d3d6da;
-            font-size: 24px;
-            font-weight: bold;
-            background-color: #ffffff;
-            color: #333;
-            border-radius: 5px;
-            transition: all 0.2s ease;
-        }
+.guess-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #d3d6da;
+    font-size: 24px;
+    font-weight: bold;
+    background-color: #ffffff;
+    color: #333;
+    border-radius: 5px;
+    transition: all 0.2s ease;
+    height: 100%;
+    width: 100%;
+}
 
         .guess-cell.correct {
             background-color: #6aaa64;
